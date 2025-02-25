@@ -1,5 +1,5 @@
 import pygame
-from constants import PLAYER_RADIUS, PLAYER_TURN_SPEED, PLAYER_SPEED
+from constants import *
 from circleshape import CircleShape
 
 
@@ -7,6 +7,10 @@ class Player(CircleShape):
     def __init__(self, x: int, y: int) -> None:
         super().__init__(x, y, PLAYER_RADIUS)
         self.rotation = 0
+        self.cooldown = 0
+
+    def _cooldown_check(self) -> bool:
+        return not self.cooldown > 0
 
     def triangle(self):
         forward = pygame.Vector2(0, 1).rotate(self.rotation)
@@ -17,7 +21,7 @@ class Player(CircleShape):
         return [a, b, c]
 
     def draw(self, screen):
-        pygame.draw.polygon(screen, (255, 255, 255,), self.triangle(), 2)
+        pygame.draw.polygon(screen, (255, 255, 255), self.triangle(), 2)
 
     def rotate(self, dt):
         self.rotation += PLAYER_TURN_SPEED * dt
@@ -37,4 +41,25 @@ class Player(CircleShape):
             self.move(dt)
         if keys[pygame.K_s]:
             self.move(-dt)
+        if keys[pygame.K_SPACE]:
+            self.shot()
+        self.cooldown -= dt
 
+    def shot(self):
+        if not self._cooldown_check():
+            return
+        direction = pygame.Vector2(0, self.radius + 3).rotate(self.rotation)  # + 3 car width =2
+        new_shot = Shot(self.position.x + direction.x, self.position.y + direction.y)
+        new_shot.velocity = PLAYER_SHOT_SPEED * pygame.Vector2(0, 1).rotate(self.rotation)
+        self.cooldown = PLAYER_SHOOT_COOLDOWN
+
+
+class Shot(CircleShape):
+    def __init__(self, x, y, radius=SHOT_RADIUS):
+        super().__init__(x, y, radius)
+
+    def draw(self, screen):
+        pygame.draw.circle(screen, (255, 255, 255), self.position, self.radius, 2)
+
+    def update(self, dt):
+        self.position += self.velocity * dt
