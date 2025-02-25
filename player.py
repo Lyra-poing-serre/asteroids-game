@@ -10,7 +10,7 @@ class Player(CircleShape):
         self.cooldown = 0
 
     def _cooldown_check(self) -> bool:
-        return not self.cooldown > 0
+        return self.cooldown > 0
 
     def triangle(self):
         forward = pygame.Vector2(0, 1).rotate(self.rotation)
@@ -46,10 +46,9 @@ class Player(CircleShape):
         self.cooldown -= dt
 
     def shot(self):
-        if not self._cooldown_check():
+        if self._cooldown_check():
             return
-        direction = pygame.Vector2(0, self.radius + 3).rotate(self.rotation)  # + 3 car width =2
-        new_shot = Shot(self.position.x + direction.x, self.position.y + direction.y)
+        new_shot = Shot(self.position.x, self.position.y)
         new_shot.velocity = PLAYER_SHOT_SPEED * pygame.Vector2(0, 1).rotate(self.rotation)
         self.cooldown = PLAYER_SHOOT_COOLDOWN
 
